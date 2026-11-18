@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto Headshot Demo</title>
+<style>
+body {
+  background: #101522;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
+h1 { color: #ff4242; }
+button {
+  padding: 14px 22px;
+  margin: 10px;
+  border: 0;
+  border-radius: 10px;
+  background: #ff3333;
+  color: white;
+  font-weight: bold;
+}
+#target {
+  width: 65px;
+  height: 65px;
+  background: #ff3333;
+  border: 5px solid white;
+  border-radius: 50%;
+  margin: 70px auto;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<h1>AUTO HEADSHOT</h1>
+<p>Safe Aim Practice Demo</p>
+
+<h2>Score: <span id="score">0</span></h2>
+
+<div id="target"></div>
+
+<button onclick="aim()">AUTO AIM</button>
+<button onclick="reset()">RESET</button>
+
+<p id="status">Ready to practice!</p>
+
+<script>
+let score = 0;
+
+function aim() {
+  score++;
+  document.getElementById("score").innerText = score;
+  document.getElementById("status").innerText =
+    "HEADSHOT! Great Aim!";
+}
+
+function reset() {
+  score = 0;
+  document.getElementById("score").innerText = 0;
+  document.getElementById("status").innerText =
+    "Ready to practice!";
+}
+</script>
+
+</body>
+</html>
