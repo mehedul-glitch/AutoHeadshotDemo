@@ -3,65 +3,348 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Auto Headshot Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AUTO HEADSHOT V3</title>
+
 <style>
+* { box-sizing:border-box; }
+
 body {
-  background: #101522;
-  color: white;
-  text-align: center;
-  font-family: Arial;
+  margin:0;
+  background:#080d19;
+  color:white;
+  font-family:Arial,sans-serif;
+  text-align:center;
 }
-h1 { color: #ff4242; }
-button {
-  padding: 14px 22px;
-  margin: 10px;
-  border: 0;
-  border-radius: 10px;
-  background: #ff3333;
-  color: white;
-  font-weight: bold;
+
+header {
+  padding:22px 10px;
+  background:#111c31;
+  border-bottom:2px solid #00e5ff;
 }
+
+h1 {
+  color:#ff303f;
+  text-shadow:0 0 15px red;
+  margin:5px;
+}
+
+.version {
+  color:#00e5ff;
+  letter-spacing:3px;
+}
+
+.stats {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  padding:15px 10px;
+}
+
+.stat {
+  background:#15233b;
+  padding:15px 4px;
+  border:1px solid #00d9ff;
+  border-radius:12px;
+}
+
+.stat b {
+  display:block;
+  color:#00eeff;
+  font-size:25px;
+  margin-top:8px;
+}
+
+#arena {
+  height:390px;
+  margin:10px;
+  background:radial-gradient(#172c4d,#080d19);
+  border:2px solid #00d9ff;
+  border-radius:18px;
+  position:relative;
+  overflow:hidden;
+  touch-action:manipulation;
+}
+
 #target {
-  width: 65px;
-  height: 65px;
-  background: #ff3333;
-  border: 5px solid white;
-  border-radius: 50%;
-  margin: 70px auto;
-  cursor: pointer;
+  width:65px;
+  height:65px;
+  border-radius:50%;
+  background:#ff303f;
+  border:5px solid white;
+  box-shadow:0 0 20px red;
+  position:absolute;
+  left:40%;
+  top:40%;
+  cursor:pointer;
+  z-index:2;
+}
+
+#target:after {
+  content:"";
+  position:absolute;
+  width:18px;
+  height:18px;
+  background:white;
+  border-radius:50%;
+  top:18px;
+  left:18px;
+}
+
+#aim {
+  position:absolute;
+  width:90px;
+  height:90px;
+  border:2px solid #00eeff;
+  border-radius:50%;
+  left:0;
+  top:0;
+  pointer-events:none;
+  display:none;
+  z-index:3;
+  box-shadow:0 0 15px #00eeff;
+  transform:translate(-50%,-50%);
+}
+
+#aim:before,#aim:after {
+  content:"";
+  position:absolute;
+  background:#00eeff;
+}
+
+#aim:before {
+  width:120px;height:2px;
+  left:-17px;top:42px;
+}
+
+#aim:after {
+  width:2px;height:120px;
+  top:-17px;left:42px;
+}
+
+.controls {
+  padding:12px;
+}
+
+button {
+  padding:15px 20px;
+  margin:6px;
+  border:0;
+  border-radius:10px;
+  color:white;
+  background:#ed2939;
+  font-weight:bold;
+  font-size:15px;
+  box-shadow:0 0 12px #ed2939;
+}
+
+button:active {
+  transform:scale(.94);
+}
+
+.auto {
+  background:#007dff;
+  box-shadow:0 0 12px #007dff;
+}
+
+.reset {
+  background:#333f56;
+  box-shadow:none;
+}
+
+#status {
+  color:#00e5ff;
+  padding:12px;
+  font-size:16px;
+}
+
+footer {
+  color:#7186a7;
+  padding:15px;
+  font-size:12px;
 }
 </style>
 </head>
+
 <body>
 
-<h1>AUTO HEADSHOT</h1>
-<p>Safe Aim Practice Demo</p>
+<header>
+  <h1>🎯 AUTO HEADSHOT</h1>
+  <div class="version">GAMING DEMO V3</div>
+</header>
 
-<h2>Score: <span id="score">0</span></h2>
+<div class="stats">
+  <div class="stat">HEADSHOTS<b id="hits">0</b></div>
+  <div class="stat">MISSES<b id="misses">0</b></div>
+  <div class="stat">SCORE<b id="score">0</b></div>
+</div>
 
-<div id="target"></div>
+<div id="arena">
+  <div id="target"></div>
+  <div id="aim"></div>
+</div>
 
-<button onclick="aim()">AUTO AIM</button>
-<button onclick="reset()">RESET</button>
+<div class="controls">
+  <button onclick="startGame()">START GAME</button>
+  <button class="auto" onclick="toggleAuto()" id="autoBtn">AUTO AIM: OFF</button>
+  <button class="reset" onclick="resetGame()">RESET</button>
+</div>
 
-<p id="status">Ready to practice!</p>
+<div id="status">READY TO PLAY!</div>
+
+<footer>
+  AUTO HEADSHOT DEMO V3 | OFFLINE AIM PRACTICE
+</footer>
 
 <script>
-let score = 0;
+const arena = document.getElementById("arena");
+const target = document.getElementById("target");
+const aim = document.getElementById("aim");
 
-function aim() {
-  score++;
-  document.getElementById("score").innerText = score;
-  document.getElementById("status").innerText =
-    "HEADSHOT! Great Aim!";
+let hits = 0;
+let misses = 0;
+let score = 0;
+let playing = false;
+let auto = false;
+
+let x = 100;
+let y = 100;
+let dx = 2.8;
+let dy = 2.2;
+let lastAuto = 0;
+
+function updateStats() {
+  document.getElementById("hits").textContent = hits;
+  document.getElementById("misses").textContent = misses;
+  document.getElementById("score").textContent = score;
 }
 
-function reset() {
+function moveTarget() {
+  if (!playing) return;
+
+  const maxX = arena.clientWidth - 65;
+  const maxY = arena.clientHeight - 65;
+
+  x += dx;
+  y += dy;
+
+  if (x <= 0 || x >= maxX) dx *= -1;
+  if (y <= 0 || y >= maxY) dy *= -1;
+
+  x = Math.max(0, Math.min(x,maxX));
+  y = Math.max(0, Math.min(y,maxY));
+
+  target.style.left = x + "px";
+  target.style.top = y + "px";
+
+  requestAnimationFrame(moveTarget);
+}
+
+function hitTarget() {
+  if (!playing) return;
+
+  hits++;
+  score += 10;
+  updateStats();
+
+  target.style.transform = "scale(1.35)";
+  setTimeout(() => {
+    target.style.transform = "scale(1)";
+  },100);
+
+  document.getElementById("status").textContent =
+    "🔥 HEADSHOT! +10 POINTS";
+
+  dx *= 1.04;
+  dy *= 1.04;
+}
+
+target.addEventListener("pointerdown", function(e) {
+  e.stopPropagation();
+  hitTarget();
+});
+
+arena.addEventListener("pointerdown", function(e) {
+  if (!playing) return;
+
+  misses++;
+  updateStats();
+
+  document.getElementById("status").textContent =
+    "❌ MISS! TRY AGAIN";
+});
+
+function startGame() {
+  if (playing) return;
+
+  playing = true;
+  document.getElementById("status").textContent =
+    "🎮 GAME STARTED! HIT THE TARGET";
+
+  requestAnimationFrame(moveTarget);
+}
+
+function toggleAuto() {
+  if (!playing) startGame();
+
+  auto = !auto;
+
+  document.getElementById("autoBtn").textContent =
+    auto ? "AUTO AIM: ON" : "AUTO AIM: OFF";
+
+  aim.style.display = auto ? "block" : "none";
+
+  if (auto) autoLoop();
+
+  document.getElementById("status").textContent =
+    auto ? "🤖 DEMO AUTO AIM ACTIVE" : "MANUAL AIM MODE";
+}
+
+function autoLoop() {
+  if (!auto || !playing) return;
+
+  const centerX = x + 32;
+  const centerY = y + 32;
+
+  aim.style.left = centerX + "px";
+  aim.style.top = centerY + "px";
+
+  const now = Date.now();
+
+  if (now - lastAuto > 1100) {
+    lastAuto = now;
+    hitTarget();
+  }
+
+  setTimeout(autoLoop,100);
+}
+
+function resetGame() {
+  playing = false;
+  auto = false;
+
+  hits = 0;
+  misses = 0;
   score = 0;
-  document.getElementById("score").innerText = 0;
-  document.getElementById("status").innerText =
-    "Ready to practice!";
+
+  x = 100;
+  y = 100;
+  dx = 2.8;
+  dy = 2.2;
+  lastAuto = 0;
+
+  aim.style.display = "none";
+
+  document.getElementById("autoBtn").textContent =
+    "AUTO AIM: OFF";
+
+  target.style.left = x + "px";
+  target.style.top = y + "px";
+
+  document.getElementById("status").textContent =
+    "READY TO PLAY!";
+
+  updateStats();
 }
 </script>
 
